@@ -90,6 +90,36 @@ void list_treasures(const char *hunt_id) {
     }
     close(fd);
 }
+void view_treasure(const char *hunter_id,int treasure_id){
+    char filepath[MY_MAX_PATH];
+    snprintf(filepath,MY_MAX_PATH,"%s/treasure.dat",hunter_id);
+    
+    struct stat st;
+    if(stat(filepath,&st)<0){
+        perror("nu pot accesa fisierul");
+        return;
+    }
+    int fd=open(filepath,O_RDONLY);
+    if(fd<0){
+        perror("nu pot deschide fisierul");
+        return;
+    }
+    Treasure t;
+    while(read(fd,&t,sizeof(Treasure))==sizeof(Treasure)){
+        if(t.ID==treasure_id){
+            printf("Detalii comoara ID %d:\n",t.ID);
+            printf("Nume utilizator:%s\n",t.username);
+            printf("Latitudinea:%f\n",t.latitudine);
+            printf("Longitudinea:%f\n",t.longitudine);
+            printf("Indiciu:%s\n",t.clue);
+            printf("Valoare:%d\n",t.value);
+            close(fd);
+            return;
+        }
+    }
+printf("Comoara cu ID-ul %d nu a fost gasita nicaieri",treasure_id);
+close(fd);
+}
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -106,8 +136,16 @@ int main(int argc, char *argv[]) {
         adauga_treasure(hunt_id);
     } else if (strcmp(cmd, "list") == 0) {
         list_treasures(hunt_id);
+    }else if (strcmp(cmd,"view")==0){
+        if(argc<4){
+            printf("Pentru a apela acesta functie este necesar de specificat ID-ul comorii");
+            return 1;
+        }
+        int treasure_id=atoi(argv[3]);
+        view_treasure(hunt_id,treasure_id);
     } else {
         printf("Comanda necunoscuta\n");
+        return 1;
     }
 
     return 0;
